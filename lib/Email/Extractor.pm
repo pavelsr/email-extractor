@@ -77,7 +77,7 @@ sub search_until_attempts {
     
     while ( !@$a && $links_checked <= $attempts ) {    # but no more than 10 iterations
 
-        my $urls = $crawler->extract_contact_links;
+        my $urls = $self->extract_contact_links;
         for my $u (@$urls) {
             $a = $crawler->get_emails_from_uri($u);
             $links_checked++;
