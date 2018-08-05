@@ -176,11 +176,12 @@ url without query, L<https://metacpan.org/pod/Regexp::Common::URI::http#$7> if p
 sub looks_like_url {
     my $string = shift;
     my $regexp = qr($RE{URI}{HTTP}{-scheme=>qr/https?/}{-keep});
-    if ( $string =~ $regexp ) {
-        # warn "$1 $2 $3 $4 $5 $6 $7 $8";
-        return $7 if defined $7;
-        return $1 if defined $1;
-    } else {
+
+    if ( $string =~ $regexp  ) {
+        # return $7 if defined $7;
+        return $1;
+    }
+    else {    
         return 0;
     }
 }
@@ -350,7 +351,8 @@ Return C<ARRAYREF>
 
 sub find_all_links {
     my $html = shift;
-    my $dom = Mojo::DOM->new($html);    
+    warn 'find_all_links() :'.$html;
+    my $dom = Mojo::DOM->new($html);
     return $dom->find('a')->map(attr => 'href')->to_array;
 }
 

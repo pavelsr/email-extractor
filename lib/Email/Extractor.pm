@@ -62,7 +62,7 @@ sub new {
 
 =head2 search_until_attempts
 
-Search for email until number of search_until_attempts
+Search for email until specified number of GET requests
 
 =cut
 
@@ -78,10 +78,13 @@ sub search_until_attempts {
     while ( !@$a && $links_checked <= $attempts ) {    # but no more than 10 iterations
 
         my $urls = $self->extract_contact_links;
+        return if !@$urls;
+        
         for my $u (@$urls) {
             $a = $crawler->get_emails_from_uri($u);
             $links_checked++;
         }
+        
     }
     
     $self->{last_attempts} = $links_checked;
@@ -151,7 +154,7 @@ Veriables for debug:
     $self->{non_contact_links}  # links assumed not contained company contacts
     $self->{last_uri}
 
-Return C<ARRAYREF>
+Return C<ARRAYREF> or C<undef> if no contact links found
 
 =cut
 
@@ -160,8 +163,11 @@ sub extract_contact_links {
     my ($self, $text) = @_;
     
     $text = $self->{last_text} if !defined $text;
+    return if !defined $text;
 
     my $all_links = find_all_links($text);
+    return if (!@$all_links);
+    
     $self->{last_all_links} = $all_links;
     
     # TO-DO: do not remove links on social networks since there can be email too

@@ -46,7 +46,7 @@ Params:
 
 ## search\_until\_attempts
 
-Search for email until number of search\_until\_attempts
+Search for email until specified number of GET requests
 
 ## get\_emails\_from\_uri
 
@@ -93,7 +93,7 @@ Veriables for debug:
     $self->{non_contact_links}  # links assumed not contained company contacts
     $self->{last_uri}
 
-Return `ARRAYREF`
+Return `ARRAYREF` or `undef` if no contact links found
 
 ## contacts
 

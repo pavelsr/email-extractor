@@ -11,16 +11,22 @@ package getemails;
     
 second parameter is to check or not to check contact links
 
+You can set 
+
 v - verbose
 
 By default it checks contact links in all languages
+
+Url must not be ended in trailing slash, otherwise link may be interpreted as file 
 
 =cut
 
 use strict;
 use warnings;
 use Email::Extractor;
+use feature 'say';
 use Data::Dumper;
+
 
 my $params = {
     uri => $ARGV[0],
@@ -39,10 +45,12 @@ my $links_checked = 1;
 
 if ( $params->{check_contacts} ) {
 
-    while ( !@$a && $links_checked <= 10 ) {    # but no more than 10 iterations
+    while ( !defined $a && $links_checked <= $ARGV[1] ) {    # but no more than 10 iterations
 
         my $urls = $crawler->extract_contact_links;
+        say "Potential contact links found: ".scalar @$urls;
         for my $u (@$urls) {
+            print "Parsing ".$u."\n";
             $a = $crawler->get_emails_from_uri($u);
             $links_checked++;
         }
@@ -52,6 +60,6 @@ if ( $params->{check_contacts} ) {
 
 print "$_\n" for (@$a);
 
-print "Links checked: ".$links_checked."\n" if ( $params->{verbose} );
+print "Links checked sum-total: ".$links_checked."\n" if ( $params->{verbose} );
 
 1;
