@@ -15,7 +15,7 @@ just modify L<Email::Extractor/contacts> and L<Email::Extractor/url_with_contact
 
 =head1 SYNOPSIS
 
-    my $crawler = Email::Extractor->new( only_language => 'ru' );
+    my $crawler = Email::Extractor->new( only_language => 'ru', timeout => 30 );
     
     $crawler->search_until_attempts('https://example.com' , 5);
 
@@ -50,13 +50,17 @@ Constructor
 Params:
 
     only_lang - array of languages to check, by default is C<ru>
+    timeout   - timeout of each request in seconds, by default is C<20>
 
 =cut
 
 sub new {
     my ( $class, %param ) = @_;
     $param{ua} = LWP::UserAgent->new;
+    $param{timeout} = 20 if !defined $param{timeout};
+    $param{ua}->timeout( $param{timeout} );
     $param{only_lang} = 'ru' if !defined $param{only_lang};
+    $Email::Extractor::Utils::Verbose = 1 if $param{verbose};
     bless { %param }, $class;
 }
 
@@ -64,24 +68,32 @@ sub new {
 
 Search for email until specified number of GET requests
 
+    my $emails = $crawler->search_until_attempts( $uri, 5 );
+    
+Return C<ARRAYREF> or C<undef> if no emails found
+
 =cut
 
 sub search_until_attempts {
     my ( $self, $uri, $attempts ) = @_;
     
     $attempts = 10 if !defined $attempts;
-    my $links_checked = 1;
     my $a = $self->get_emails_from_uri($uri);
     
+    my $links_checked = 1;
+    print "No emails found on specified url\n" if ( !@$a && $self->{verbose} );
     return $a if @$a;
     
-    while ( !@$a && $links_checked <= $attempts ) {    # but no more than 10 iterations
-
-        my $urls = $self->extract_contact_links;
-        return if !@$urls;
+    my $urls = $self->extract_contact_links;
+    
+    print "Contact links found: ".scalar @$urls."\n" if ( @$urls && $self->{verbose} );
+    print "No contact links found\n" if ( !@$urls && $self->{verbose} );
+    return if !@$urls;
+    
+    while ( !@$a || $links_checked <= $attempts ) {
         
         for my $u (@$urls) {
-            $a = $crawler->get_emails_from_uri($u);
+            $a = $self->get_emails_from_uri($u);
             $links_checked++;
         }
         
@@ -102,7 +114,7 @@ Found all emails in html page
 
 Function can accept http(s) uri or file paths both
 
-Return C<ARRAYREF>
+Return C<ARRAYREF> (can be empty)
 
 =cut
 
@@ -221,7 +233,9 @@ sub contacts {
     }
 }
 
-
+local *Email::Extractor::get_emails_from_uri = sub {   
+        return [ 'my@example.com', 'your@example.com' ];
+    };
 =head2 url_with_contacts
 
 Return array of words that may contain contact url
@@ -230,6 +244,7 @@ Return array of words that may contain contact url
 
 sub url_with_contacts {
     return qw/
+        contact
         contacts
         kontaktyi
         kontakty

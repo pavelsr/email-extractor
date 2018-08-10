@@ -4,7 +4,7 @@ use Test::More;
 
 BEGIN { use_ok('Email::Extractor'); }
 
-my $crawler = Email::Extractor->new();
+my $crawler = Email::Extractor->new( );
 
 subtest "extract_contact_links" => sub {
 
@@ -68,7 +68,66 @@ subtest "get_emails_from_uri" => sub {
         [ ],
         'Parsing email from third regular page without any email'
     );
+    
+    is_deeply  (
+        $crawler->get_emails_from_uri( $html_loc.'/antispam.html'),
+        [ ],
+        'No emails at antispam.html'
+    );
 
+};
+
+subtest "search_until_attempts" => sub {
+
+    no warnings 'redefine';
+    
+    local *Email::Extractor::get_emails_from_uri = sub {   
+        return [];
+    };
+    
+    local *Email::Extractor::extract_contact_links = sub {   
+        return undef;
+    };
+    
+    use Data::Dumper;
+    
+    is 
+        $crawler->search_until_attempts('http://example.com', 0), 
+        undef, 
+        'return undef if no email on main page and no contact links';
+    
+    local *Email::Extractor::get_emails_from_uri = sub {   
+        return [ 'my@example.com', 'your@example.com' ];
+    };
+    
+    is_deeply 
+        $crawler->search_until_attempts('http://example.com', 0),
+        [ 'my@example.com', 'your@example.com' ],
+        'Return result of get_emails_from_uri if emails found on main page';
+    
+    is_deeply 
+        $crawler->search_until_attempts('http://example.com', 5),
+        [ 'my@example.com', 'your@example.com' ],
+        'Return result of get_emails_from_uri if emails found on main page and attempts = 5';
+    
+    
+    # simulate that email found on second contact link
+    
+    local *Email::Extractor::extract_contact_links = sub {
+        return [ '/about', '/contacts' ];
+    };
+    
+    local *Email::Extractor::get_emails_from_uri = sub {   
+        my ( $self, $addr ) = @_;
+        return [] if $addr eq '/about';
+        return [ 'test@example.com' ] if $addr eq '/contacts';
+    };
+    
+    is_deeply 
+        $crawler->search_until_attempts('http://example.com'),
+        [ 'test@example.com' ],
+        'Email found on second contact link'
+    
 };
 
 done_testing();

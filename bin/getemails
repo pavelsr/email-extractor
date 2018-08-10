@@ -11,13 +11,11 @@ package getemails;
     
 second parameter is to check or not to check contact links
 
-You can set 
+You can set this number to any integer and it will set value of $attempts at L<Email::Extractor/search_until_attempts>
 
-v - verbose
+v - verbose mode
 
-By default it checks contact links in all languages
-
-Url must not be ended in trailing slash, otherwise link may be interpreted as file 
+By default it checks contact links in all available languages at L<Email::Extractor/contacts>
 
 =cut
 
@@ -27,6 +25,7 @@ use Email::Extractor;
 use feature 'say';
 use Data::Dumper;
 
+die "Usage: $0 <url>\n" unless @ARGV >= 1;
 
 my $params = {
     uri => $ARGV[0],
@@ -34,32 +33,11 @@ my $params = {
     verbose => $ARGV[2]
 };
 
-die 'No uri specified' unless defined $params->{uri} && length $params->{uri};
+# warn Dumper $params;
 
-my $crawler = Email::Extractor->new();
-my $a = $crawler->get_emails_from_uri($params->{uri});
-
-print "No emails found on specified url\n" if ( !@$a && $params->{verbose} );
-
-my $links_checked = 1;
-
-if ( $params->{check_contacts} ) {
-
-    while ( !defined $a && $links_checked <= $ARGV[1] ) {    # but no more than 10 iterations
-
-        my $urls = $crawler->extract_contact_links;
-        say "Potential contact links found: ".scalar @$urls;
-        for my $u (@$urls) {
-            print "Parsing ".$u."\n";
-            $a = $crawler->get_emails_from_uri($u);
-            $links_checked++;
-        }
-    }
-    
-}
-
-print "$_\n" for (@$a);
-
-print "Links checked sum-total: ".$links_checked."\n" if ( $params->{verbose} );
+my $crawler = Email::Extractor->new( verbose => $params->{verbose} );
+my $a = $crawler->search_until_attempts( $params->{uri}, $params->{check_contacts} );
+print "$_\n" for @$a;
+print "Links checked sum-total: ".$crawler->{last_attempts}."\n" if ( $params->{verbose} && $params->{check_contacts} > 1 );
 
 1;

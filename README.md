@@ -8,7 +8,7 @@ version 0.02
 
 # SYNOPSIS
 
-    my $crawler = Email::Extractor->new( only_language => 'ru' );
+    my $crawler = Email::Extractor->new( only_language => 'ru', timeout => 30 );
     
     $crawler->search_until_attempts('https://example.com' , 5);
 
@@ -43,10 +43,15 @@ Constructor
 Params:
 
     only_lang - array of languages to check, by default is C<ru>
+    timeout   - timeout of each request in seconds, by default is C<20>
 
 ## search\_until\_attempts
 
 Search for email until specified number of GET requests
+
+    my $emails = $crawler->search_until_attempts( $uri, 5 );
+
+Return `ARRAYREF` or `undef` if no emails found
 
 ## get\_emails\_from\_uri
 
@@ -59,7 +64,7 @@ Found all emails in html page
 
 Function can accept http(s) uri or file paths both
 
-Return `ARRAYREF`
+Return `ARRAYREF` (can be empty)
 
 ## extract\_contact\_links
 

@@ -12,7 +12,7 @@ Set of useful utilities that works with html and urls
 
   use Email::Extractor::Utils qw( looks_like_url looks_like_file get_file_uri load_addr_to_str )
   # or use Email::Extractor::Utils qw[:ALL];
-  Email::Extractor::Utils::Verbose = 1;
+  $Email::Extractor::Utils::Verbose = 1;
   
   my $text = load_addr_to_str($url);
 
@@ -32,6 +32,7 @@ use File::Slurp qw(read_file);
 use File::Basename;  # fileparse
 use Regexp::Common qw /URI/;
 use LWP::UserAgent;
+use LWPx::TimedHTTP qw(:autoinstall);
 use Mojo::DOM;
 
 require Exporter;
@@ -84,6 +85,33 @@ our $Assets = [
     'ppt'
 ];
 
+# Loads url and measure timings
+
+sub _load_url_verbose {
+    my $addr = shift;
+    my $ua = LWP::UserAgent->new;
+    my $resp = $ua->get($addr);             # HTTP::Response
+    
+    my @headers = qw/
+        Client-Request-Dns-Time
+        Client-Request-Connect-Time
+        Client-Request-Transmit-Time
+        Client-Response-Server-Time
+        Client-Response-Receive-Time
+    /;
+    
+    my $msg;
+    for my $h (@headers) {
+        my $prm = (split('-', $h))[2];
+        $msg .= ' '.$prm.' : '.$resp->header($h)."\n" if defined $resp->header($h);
+    }
+    
+    say $msg if $Verbose;
+    say $resp->status_line if ( $resp->is_error && $Verbose );
+    return $resp->content;
+} 
+
+
 =head2 load_addr_to_str
 
 Accept URI of file path and return string with content
@@ -97,6 +125,8 @@ dies if no such file
 
 return $resp->content even if no such url
 
+If verbose mode enabled prints time of request
+
 Can be used in tests when you need to mock http requests also
 
 =cut
@@ -108,14 +138,12 @@ sub load_addr_to_str {
         
         if ( looks_like_url($addr) ) {
             
-            say "$addr: is url" if ($Verbose);
-            my $ua = LWP::UserAgent->new;
-            my $resp = $ua->get($addr);             # HTTP::Response
-            return $resp->content;
+            say "$addr: is url" if $Verbose;
+            _load_url_verbose($addr);
             
         } else {
             
-            say "$addr: is file" if ($Verbose);
+            say "$addr: is file" if $Verbose;
             my $file_uri = get_file_uri($addr);
             
             if ( looks_like_file($file_uri) ) {
@@ -351,7 +379,6 @@ Return C<ARRAYREF>
 
 sub find_all_links {
     my $html = shift;
-    warn 'find_all_links() :'.$html;
     my $dom = Mojo::DOM->new($html);
     return $dom->find('a')->map(attr => 'href')->to_array;
 }
