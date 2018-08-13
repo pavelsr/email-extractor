@@ -57,7 +57,7 @@ Return `ARRAYREF` or `undef` if no emails found
 
 High-level function uses [Email::Find](https://metacpan.org/pod/Email::Find)
 
-Found all emails in html page
+Found all emails (regexp accoding RFC 822 standart) in html page
 
     $emails = $crawler->get_emails_from_uri('https://example.com');
     $emails = $crawler->get_emails_from_uri('user/test.html');
@@ -110,6 +110,14 @@ Return hash with contacts word in different languages
 
 Return array of words that may contain contact url
 
+    perl -Ilib -E "use Email::Extractor; use Data::Dumper; print Dumper Email::Extractor::url_with_contacts();"
+
+## get\_exceptions
+
+Return array of addresses that [Email::Find](https://metacpan.org/pod/Email::Find) consider as email but in fact it is no
+
+    perl -Ilib -E "use Email::Extractor; use Data::Dumper; print Dumper Email::Extractor::exceptions();"
+
 ## get\_encoding
 
 Return encoding of last loaded html
@@ -126,6 +134,8 @@ If called without parametes it return encoding of last text loaded by function l
 Return hash with contacts word in different languages
 
     perl -Ilib -E "use Email::Extractor; use Data::Dumper; print Dumper Email::Extractor::contacts();"
+
+Links checked in uppercase and lowecase also
 
 ## get\_encoding
 

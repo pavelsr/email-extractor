@@ -39,6 +39,7 @@ use HTML::Encoding 'encoding_from_html_document';
 use List::Compare;
 use List::Util qw(uniq);
 use Email::Find;
+use Email::Valid;
 use Mojo::DOM;
 
 use Email::Extractor::Utils qw[:ALL];
@@ -139,6 +140,9 @@ sub _get_emails_from_text {
     # remove values that passes email validation but in fact are not emails
     # L<Email::Extractor/get_exceptions>
     @emails = grep { !isin( $_, $self->get_exceptions ) } @emails;
+    
+    # MX record checking
+    @emails = grep { defined Email::Valid->address( -address => $_, -mxcheck => 1 ) } @emails;
     
     return \@emails;
 }
