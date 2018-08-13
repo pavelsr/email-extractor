@@ -196,11 +196,11 @@ sub extract_contact_links {
     
     if ( $self->{only_lang} ) {
         my $contacts_loc = $self->contacts->{ $self->{only_lang} };
-        push @potential_contact_links, @{ find_links_by_text($text, $contacts_loc ) };
+        push @potential_contact_links, @{ find_links_by_text($text, $contacts_loc, 1 ) };
     } 
     else {
         for my $c ( @{$self->contacts} ) {
-            my $res = find_links_by_text($text, $c);
+            my $res = find_links_by_text($text, $c, 1);
             push @potential_contact_links, @$res;
         }
     }
@@ -278,6 +278,8 @@ sub get_encoding {
 Return hash with contacts word in different languages
 
     perl -Ilib -E "use Email::Extractor; use Data::Dumper; print Dumper Email::Extractor::contacts();"
+
+Links checked in uppercase and lowecase also
 
 =cut
 

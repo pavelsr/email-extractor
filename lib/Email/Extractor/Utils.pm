@@ -385,6 +385,8 @@ sub find_all_links {
 
 =head2 find_links_by_text
 
+    find_links_by_text($html, $a_text, <$upper_lower_case_flag> )
+
 Find all C<a> tags containing particular text and return href values
 
 If no search text specified return all links
@@ -398,11 +400,28 @@ TO-DO: try to implement this method with L<HTML::LinkExtor>
 =cut
 
 sub find_links_by_text {
-    my ($html, $a_text) = @_;
-    my $dom = Mojo::DOM->new($html);
-    # Mojo::Collection of Mojo::DOM
+    my ($html, $a_text, $upper_lower_case_flag ) = @_;
+    my $dom = Mojo::DOM->new($html);    # Mojo::Collection of Mojo::DOM
+    
     # return $dom->find('a')->grep('text' => $a_text)->map(attr => 'href')->to_array;
-    return $dom->find('a')->grep(sub { $_->text eq $a_text })->map(attr => 'href')->to_array;
+    return $dom->find('a')->grep(sub { $_->text eq $a_text })->map(attr => 'href')->to_array if !defined $upper_lower_case_flag;
+    
+    # TO-DO: fix lc/uc issue is case of non-ascii characters
+
+    # warn Dumper $crawler->extract_contact_links('<a href="/some_link" title="">Контакты</a>');
+    # warn Dumper $crawler->extract_contact_links('<a href="/some_link" title="">контакты</a>');
+    # warn Dumper $crawler->extract_contact_links('<a href="/some_link" title="">КОНТАКТЫ</a>');
+    
+    # https://stackoverflow.com/questions/3399129/compare-two-strings-regardless-of-case-size-in-perl
+    use utf8;
+    if ($upper_lower_case_flag) {
+        return $dom->find('a')->grep( 
+            sub { 
+                lc $_->text eq lc $a_text
+            }
+        )->map(attr => 'href')->to_array
+    }
+    
 }
 
 1;

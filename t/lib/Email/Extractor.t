@@ -47,6 +47,10 @@ subtest "extract_contact_links" => sub {
     	[ '/роут' ],
     	'cyrillic domain: <a> text analysis: relative links: cyrillic domain: extracted fine in contacts key'
     );
+    
+    # L<Email::Extractor/contacts> extracted in uppercase and lowercase
+    
+    
 
 };
 
