@@ -25,6 +25,9 @@ subtest "extract_contact_links" => sub {
     	[ 'http://example.com/kontakty' ],
     	'<a> href analysis: absolute links: extracted fine in contacts key'
     );
+    
+    # use Data::Dumper;
+    # warn Dumper $crawler->extract_contact_links('<a href="kontakty" title="">Че то там</a>');
 
     is_deeply (
     	$crawler->extract_contact_links('<a href="http://example.com/some_url" title="">Контакты</a>'),

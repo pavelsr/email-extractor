@@ -78,11 +78,11 @@ sub search_until_attempts {
     my ( $self, $uri, $attempts ) = @_;
     
     $attempts = 10 if !defined $attempts;
-    my $a = $self->get_emails_from_uri($uri);
+    my $emails = $self->get_emails_from_uri($uri);
     
     my $links_checked = 1;
-    print "No emails found on specified url\n" if ( !@$a && $self->{verbose} );
-    return $a if @$a;
+    print "No emails found on specified url\n" if ( !@$emails && $self->{verbose} );
+    return $emails if @$emails;
     
     my $urls = $self->extract_contact_links;
     
@@ -90,17 +90,17 @@ sub search_until_attempts {
     print "No contact links found\n" if ( !@$urls && $self->{verbose} );
     return if !@$urls;
     
-    while ( !@$a || $links_checked <= $attempts ) {
+    for my $u (@$urls) {
         
-        for my $u (@$urls) {
-            $a = $self->get_emails_from_uri($u);
-            $links_checked++;
-        }
-        
+        $emails = $self->get_emails_from_uri($u);
+        $links_checked++;
+        $self->{last_attempts} = $links_checked;
+        return $emails if @$emails;
+        return $emails if ( $links_checked >= $attempts);
     }
     
-    $self->{last_attempts} = $links_checked;
-    return $a;
+    return $emails;  # can be empty array
+
 }
 
 =head2 get_emails_from_uri
@@ -248,6 +248,7 @@ sub url_with_contacts {
         contacts
         kontaktyi
         kontakty
+        kontakti
         about
     /;
 }
