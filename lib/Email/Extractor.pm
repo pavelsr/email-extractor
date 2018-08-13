@@ -124,6 +124,11 @@ sub get_emails_from_uri {
     $self->{last_uri}  = $addr;
     my $text = load_addr_to_str($addr);
     $self->{last_text} = $text;  # store html in memory to speed up further search
+    return $self->_get_emails_from_text($text);
+}
+
+sub _get_emails_from_text {
+    my ( $self, $text ) = @_;
     my $finder = Email::Find->new(sub {
         my($email, $orig_email) = @_;
         push @emails, $orig_email;
@@ -132,7 +137,6 @@ sub get_emails_from_uri {
     @emails = uniq @emails;
     return \@emails;
 }
-
 
 =head2 extract_contact_links
 
@@ -233,12 +237,11 @@ sub contacts {
     }
 }
 
-local *Email::Extractor::get_emails_from_uri = sub {   
-        return [ 'my@example.com', 'your@example.com' ];
-    };
 =head2 url_with_contacts
 
 Return array of words that may contain contact url
+
+    perl -Ilib -E "use Email::Extractor; use Data::Dumper; print Dumper Email::Extractor::url_with_contacts();"
 
 =cut
 
@@ -253,6 +256,19 @@ sub url_with_contacts {
     /;
 }
 
+=head2 exceptions
+
+Return array of addresses that L<Email::Find> consider as email but in fact it is no
+
+    perl -Ilib -E "use Email::Extractor; use Data::Dumper; print Dumper Email::Extractor::exceptions();"
+
+=cut
+
+sub exceptions {
+    return qw/
+        !--Rating@Mail.ru
+    /
+}
 
 =head2 get_encoding
 
