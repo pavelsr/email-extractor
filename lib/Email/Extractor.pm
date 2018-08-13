@@ -107,7 +107,7 @@ sub search_until_attempts {
 
 High-level function uses L<Email::Find>
 
-Found all emails in html page
+Found all emails (regexp accoding RFC 822 standart) in html page
 
     $emails = $crawler->get_emails_from_uri('https://example.com');
     $emails = $crawler->get_emails_from_uri('user/test.html');
@@ -135,6 +135,11 @@ sub _get_emails_from_text {
     });
     $finder->find(\$text);
     @emails = uniq @emails;
+    
+    # remove values that passes email validation but in fact are not emails
+    # L<Email::Extractor/get_exceptions>
+    @emails = grep { !isin( $_, $self->get_exceptions ) } @emails;
+    
     return \@emails;
 }
 
@@ -256,7 +261,7 @@ sub url_with_contacts {
     /;
 }
 
-=head2 exceptions
+=head2 get_exceptions
 
 Return array of addresses that L<Email::Find> consider as email but in fact it is no
 
@@ -264,10 +269,10 @@ Return array of addresses that L<Email::Find> consider as email but in fact it i
 
 =cut
 
-sub exceptions {
-    return qw/
-        !--Rating@Mail.ru
-    /
+sub get_exceptions {
+    return [
+        '!--Rating@Mail.ru'
+    ]
 }
 
 =head2 get_encoding

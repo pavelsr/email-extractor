@@ -84,6 +84,16 @@ subtest "get_emails_from_uri" => sub {
 
 };
 
+subtest "_get_emails_from_text" => sub {
+
+    is_deeply (
+        $crawler->_get_emails_from_text('<!--Rating@Mail.ru COUNTER-->'),
+        [ ],
+        'Mail ru counter is not email'
+    )
+    
+};
+
 subtest "search_until_attempts" => sub {
 
     no warnings 'redefine';

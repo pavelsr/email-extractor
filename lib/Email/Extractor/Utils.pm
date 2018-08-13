@@ -51,6 +51,7 @@ our @EXPORT_OK = qw(
     drop_anchor_links
     remove_query_params
     remove_external_links
+    isin
 );
 our %EXPORT_TAGS = ( 'ALL' => [ @EXPORT_OK ] );
 
@@ -422,6 +423,27 @@ sub find_links_by_text {
         )->map(attr => 'href')->to_array
     }
     
+}
+
+=head2 isin($str, $arrayref)
+
+    isin( $val, $array_ref )
+
+Check is C<$str> contained in C<$arrayref>
+
+Return true/false.
+
+=cut
+
+sub isin($$) {
+    my ( $val, $array_ref ) = @_;
+
+    return 0 unless $array_ref && defined $val;
+    for my $v (@$array_ref) {
+        return 1 if $v eq $val;
+    }
+
+    return 0;
 }
 
 1;
