@@ -4,7 +4,7 @@ Email::Extractor - Fast email crawler
 
 # VERSION
 
-version 0.02
+version 0.03
 
 # SYNOPSIS
 

@@ -25,7 +25,8 @@ use Email::Extractor;
 use feature 'say';
 use Data::Dumper;
 
-die "Usage: $0 <url>\n" unless @ARGV >= 1;
+use Pod::Usage qw(pod2usage);
+pod2usage() unless @ARGV >= 1;
 
 my $params = {
     uri => $ARGV[0],
